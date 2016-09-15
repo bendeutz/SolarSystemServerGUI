@@ -10,7 +10,7 @@ package main;
  */
 public class Settings {
 
-    public final static int PORT = 16000;
+    public final static int PORT = 8888;
 
     //values which can be changed by gui
 

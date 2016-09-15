@@ -1,5 +1,7 @@
 package main;
 
+import gui.ServerGUI;
+
 import java.io.*;
 import java.net.Socket;
 
@@ -7,16 +9,16 @@ import java.net.Socket;
 
 public class EchoThread extends Thread {
 
-    BufferedReader in;
-    PrintWriter out;
     protected Socket socket;
     private int number;
     private String directory;
+    private ServerGUI gui;
 
-    public EchoThread(Socket clientSocket, int number, String directory) {
+    public EchoThread(ServerGUI gui, Socket clientSocket, int number, String directory) {
         this.number = number;
         this.socket = clientSocket;
         this.directory = directory;
+        this.gui = gui;
     }
 
     public void run() {
@@ -33,8 +35,8 @@ public class EchoThread extends Thread {
         }
         FileOutputStream fos = null;
         try {
-            fos = new FileOutputStream(directory + Integer.toString(number) + ".jpg");
-            System.out.println("File saved: " + directory + Integer.toString(number) + ".jpg");
+            fos = new FileOutputStream(directory + File.separator + Integer.toString(number) + ".jpg");
+            gui.setStatusPane("File saved: " + directory + File.separator + Integer.toString(number) + ".jpg");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -63,6 +65,12 @@ public class EchoThread extends Thread {
         }
         try {
             bos.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        gui.setStatusPane("-------------------------------\n");
+        try {
+            bos.close();
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -36,7 +36,7 @@ public class ServerGUI {
     private JPanel middlePanel;
     private JPanel notEditableContentPanel;
     private JPanel startStopPanel;
-    private JPanel connectedDevicesPanel;
+    private JPanel log;
 
     private JTextField ipTextFieldOne;
     private JTextField ipTextFieldTwo;
@@ -56,7 +56,6 @@ public class ServerGUI {
     private JButton loadStandardValuesButton;
     private JButton setValuesButton;
     private JButton helpButton;
-    private JButton button1;
     private JButton startButton;
     private JButton stopButton;
     private JButton sendIPToAllButton;
@@ -76,6 +75,7 @@ public class ServerGUI {
     private JTextField directoryTextFieldFix;
     private JButton chooseDirectoryButton;
     private JPanel directoryPanel;
+    private JTextPane statusPane2;
 
     private Server server;
     private static JFrame mainFrame;
@@ -138,6 +138,7 @@ public class ServerGUI {
                     setValuesInSettings();
                     server.startServer();
                     setServerStatusInTitle(true);
+                    tabs.setSelectedIndex(tabs.getSelectedIndex()+1);
 
                     //enable and disable buttons
                     startButton.setEnabled(false);
@@ -177,7 +178,6 @@ public class ServerGUI {
                 setStatusPane("SUBNET MAX 2: " + String.valueOf(Settings.SUBNET_MAX2));
                 setStatusPane("MAXIMAL CONNECTIONS: " + String.valueOf(Settings.MAX_CONNECTIONS));
                 setStatusPane("TIMEOUT: " + String.valueOf(Settings.TIMEOUT));
-
             }
         });
 
@@ -370,7 +370,7 @@ public class ServerGUI {
         }
     }
 
-    public void setStatusPane(String text) {
+     public void setStatusPane(String text) {
         if(statusPane.getText().length() > 0) {
             statusPane.setText(statusPane.getText() + "\n" + text);
         } else {

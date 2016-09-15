@@ -4,7 +4,6 @@ import gui.ServerGUI;
 import java.io.IOException;
 import java.net.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.concurrent.Semaphore;
 
@@ -53,18 +52,33 @@ public class Server {
 
     public void sendAddressAround() {
         new Thread(() -> {
-//            System.out.println("Server address: " + address);
-//            System.out.println("Please check this address, its the one used on the mobile devices for the sending process\n");
-
             // find active devices in the lan
-            ArrayList<InetAddress> allActiveDevices = findActiveDevicesInTheLAN();
-            System.out.println("Active devices found: " + allActiveDevices.size());
-            for (InetAddress actualDevice : allActiveDevices) {
-                System.out.println("Device " + deviceNumber + ": " + actualDevice.getHostAddress());
-                deviceNumber++;
-            }
-            sendIPToAllActiveDevices(allActiveDevices);
+            ArrayList<InetAddress> allPossibleDevices = collectPossibleDevices();
+            sendIPToAllPossibleDevices(allPossibleDevices);
         }).start();
+    }
+
+    private ArrayList<InetAddress> collectPossibleDevices() {
+        ArrayList<InetAddress> result = new ArrayList<>();
+        byte[] min = {Settings.SUBNET[0], Settings.SUBNET[1], (byte)Settings.SUBNET_MIN1, (byte)Settings.SUBNET_MIN2};
+        byte[] max = {Settings.SUBNET[0], Settings.SUBNET[1], (byte)Settings.SUBNET_MAX1, (byte)Settings.SUBNET_MAX2};
+        gui.setStatusPane("Send IP " + address + " to the addresses: \n" + byteArrayToString(min) + " - " + byteArrayToString(max) + "\n");
+        try {
+            for (int i = Settings.SUBNET_MIN1; i <= Settings.SUBNET_MAX1; i++) {
+                for (int j = Settings.SUBNET_MIN2; j <= Settings.SUBNET_MAX2; j++) {
+                    byte[] actualAddress = new byte[Settings.SUBNET.length + 2];
+                    actualAddress[0] = Settings.SUBNET[0];
+                    actualAddress[1] = Settings.SUBNET[1];
+                    actualAddress[2] = (byte)i;
+                    actualAddress[3] = (byte)j;
+                    InetAddress ia = InetAddress.getByAddress(actualAddress);
+                    result.add(ia);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return result;
     }
 
     // Find the right ip address of this computer to use on the clients
@@ -134,47 +148,46 @@ public class Server {
         }
     }
 
-    private ArrayList<InetAddress> findActiveDevicesInTheLAN() {
-        ArrayList<InetAddress> result = new ArrayList<>();
-        try {
-            int timeout = Settings.TIMEOUT;
-            for (int i = Settings.SUBNET_MIN1; i <= Settings.SUBNET_MAX1; i++) {
-                for (int j = Settings.SUBNET_MIN2; j <= Settings.SUBNET_MAX2; j++) {
-                    byte[] actualAddress = new byte[Settings.SUBNET.length + 2];
-                    actualAddress[0] = Settings.SUBNET[0];
-                    actualAddress[1] = Settings.SUBNET[1];
-                    actualAddress[2] = (byte)i;
-                    actualAddress[3] = (byte)j;
-                    InetAddress ia = InetAddress.getByAddress(actualAddress);
-                    gui.setStatusPane("Send IP " + address + " to " + ia.getHostAddress());
-                    if (ia.isReachable(timeout) && !Arrays.equals(actualAddress, stringToByteArray(address))) {
-                        result.add(ia);
-                    }
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return result;
-    }
+//    private ArrayList<InetAddress> findActiveDevicesInTheLAN() {
+//        ArrayList<InetAddress> result = new ArrayList<>();
+//        try {
+//            int timeout = Settings.TIMEOUT;
+//            for (int i = Settings.SUBNET_MIN1; i <= Settings.SUBNET_MAX1; i++) {
+//                for (int j = Settings.SUBNET_MIN2; j <= Settings.SUBNET_MAX2; j++) {
+//                    byte[] actualAddress = new byte[Settings.SUBNET.length + 2];
+//                    actualAddress[0] = Settings.SUBNET[0];
+//                    actualAddress[1] = Settings.SUBNET[1];
+//                    actualAddress[2] = (byte)i;
+//                    actualAddress[3] = (byte)j;
+//                    InetAddress ia = InetAddress.getByAddress(actualAddress);
+//                    gui.setStatusPane("Send IP " + address + " to " + ia.getHostAddress());
+//                    if (ia.isReachable(timeout) && !Arrays.equals(actualAddress, stringToByteArray(address))) {
+//                        result.add(ia);
+//                    }
+//                }
+//            }
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//        return result;
+//    }
 
     //send the ip address to all possible addresses in the network
-    private void sendIPToAllActiveDevices(ArrayList<InetAddress> allActiveDevices) {
+    private void sendIPToAllPossibleDevices(ArrayList<InetAddress> allPossibleDevices) {
         try {
             int i = 0;
             if(datagramSocket == null) {
                 datagramSocket = new DatagramSocket(Settings.PORT);
             }
             while (i < 100) {
-                for (InetAddress actualAddress : allActiveDevices) {
-                    System.out.println("Sending packet to: " + actualAddress.getHostAddress());
-                    if(datagramPacket == null) {
-                        datagramPacket = new DatagramPacket(address.getBytes(),
-                                address.getBytes().length, actualAddress, Settings.PORT);
-                    }
+                for (InetAddress actualAddress : allPossibleDevices) {
+                    datagramPacket = new DatagramPacket(stringToByteArray(address),
+                            stringToByteArray(address).length, actualAddress, Settings.PORT);
                     datagramSocket.send(datagramPacket);
                     i++;
                 }
+//                System.out.println(address);
+//                System.out.println(Arrays.toString(stringToByteArray(address)));
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -188,12 +201,9 @@ public class Server {
                 sem.acquire();
                 pictureNumber++;
                 sem.release();
-                new EchoThread(clientSocket, pictureNumber, gui.getDirectory());
-                System.out.println(clientSocket.getInetAddress().getHostAddress());
-                System.out.println("Client connected");
-            } catch (IOException e) {
-//                e.printStackTrace();
-            } catch (InterruptedException e) {
+                gui.setStatusPane("Client connected. IP-Address: " + clientSocket.getInetAddress());
+                new EchoThread(gui, clientSocket, pictureNumber, gui.getDirectory()).start();
+            } catch (IOException | InterruptedException e) {
                 e.printStackTrace();
             }
         }).start();
