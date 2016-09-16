@@ -49,7 +49,6 @@ public class ServerGUI {
     private JTextField subnetRangeTwoTextFieldMin;
     private JTextField subnetRangeTwoTextFieldMax;
     private JTextField maximumConnectionsTextField;
-    private JTextField timeoutTextField;
     private ArrayList<JTextField> allTextFields;
     private ArrayList<JTextField> allTextFieldsFix;
 
@@ -70,11 +69,11 @@ public class ServerGUI {
     private JTextField subnetRangeTwoTextFieldFixMin;
     private JTextField subnetRangeTwoTextFieldFixMax;
     private JTextField maximumConnectionsTextFieldFix;
-    private JTextField timeoutTextFieldFix;
     private JTextPane statusPane;
     private JTextField directoryTextFieldFix;
     private JButton chooseDirectoryButton;
     private JPanel directoryPanel;
+    private JButton openDirectoryButton;
     private JTextPane statusPane2;
 
     private Server server;
@@ -206,6 +205,14 @@ public class ServerGUI {
                 }
             }
         });
+
+        //openDirectoryButton
+        openDirectoryButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                //TODO
+            }
+        });
     }
 
     private void checkDirectory() throws NoDirectoryException {
@@ -237,7 +244,6 @@ public class ServerGUI {
 
         //others
         Settings.setMaxConnections(Integer.parseInt(allTextFieldsFix.get(10).getText()));
-        Settings.setTIMEOUT(Integer.parseInt(allTextFieldsFix.get(11).getText()));
     }
 
     private void setServerStatusInTitle(boolean b) {
@@ -301,7 +307,6 @@ public class ServerGUI {
 
         //Others
         maximumConnectionsTextField.setText("10");
-        timeoutTextField.setText("400");
     }
 
     private void setImagesToButtons() {
@@ -335,7 +340,6 @@ public class ServerGUI {
         allTextFields.add(subnetRangeTwoTextFieldMax);
 
         allTextFields.add(maximumConnectionsTextField);
-        allTextFields.add(timeoutTextField);
 
         allTextFieldsFix.add(ipTextFieldFixOne);
         allTextFieldsFix.add(ipTextFieldFixTwo);
@@ -351,7 +355,6 @@ public class ServerGUI {
         allTextFieldsFix.add(subnetRangeTwoTextFieldFixMax);
 
         allTextFieldsFix.add(maximumConnectionsTextFieldFix);
-        allTextFieldsFix.add(timeoutTextFieldFix);
     }
 
     private void addKeyListenersToTextFields() {
@@ -437,8 +440,5 @@ public class ServerGUI {
         subnetRangeTwoTextFieldMax = new MyTextField(3);
 
         maximumConnectionsTextField = new MyTextField(3);
-        timeoutTextField = new MyTextField(3);
-
-
     }
 }
